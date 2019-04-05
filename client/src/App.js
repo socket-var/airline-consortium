@@ -1,30 +1,43 @@
 import React, { Component } from "react";
+import { BrowserRouter as Router, Route } from "react-router-dom";
 import "./App.css";
+import HomePage from "./HomePage";
 import { connect } from "react-redux";
-import { sayHello } from "./redux/actions";
+import Auth from "./auth/Auth";
+import AppNavBar from "./common/AppNavBar";
+import UserLandingPage from "./protected/user/UserLandingPage";
+import AdminLandingPage from "./protected/admin/AdminLandingPage";
 
 class App extends Component {
-  componentDidMount() {
-    setTimeout(() => {
-      this.props.sayHello();
-    }, 3000);
-  }
+  state = {
+    // isLoggedIn: false,
+    // isAdminLoggedIn: false,
+    // currentUserId: null,
+    // message: "",
+    // accountBalance: null
+  };
+
+  componentDidMount() {}
+
   render() {
-    const text = this.props.text;
     return (
-      <div className="App">
-        <header className="App-header">
-          <p>{text}</p>
-        </header>
-      </div>
+      <Router>
+        <div className="App">
+          <AppNavBar />
+          <Route path="/" exact component={HomePage} />
+          <Route path="/auth" component={Auth} />
+          <Route path="/user" component={UserLandingPage} />
+          <Route path="/admin" component={AdminLandingPage} />
+        </div>
+      </Router>
     );
   }
 }
 
 const mapStateToProps = (state, ownProps) => {
-  return { text: state.helloReducer.text };
+  return {};
 };
-const mapDispatchToProps = { sayHello };
+const mapDispatchToProps = {};
 export default connect(
   mapStateToProps,
   mapDispatchToProps
