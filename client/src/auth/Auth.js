@@ -22,13 +22,28 @@ class Auth extends Component {
   };
 
   signupHandler = evt => {
+    const {
+      emailField,
+      passwordField,
+      confirmPasswordField,
+      privateKeyField,
+      accountAddressField
+    } = this.state;
+
     evt.preventDefault();
-    this.props.registerUser();
+    this.props.registerUser(
+      accountAddressField,
+      emailField,
+      passwordField,
+      confirmPasswordField,
+      privateKeyField
+    );
   };
 
   loginHandler = evt => {
+    const { emailField, passwordField } = this.state;
     evt.preventDefault();
-    this.props.loginUser();
+    this.props.loginUser(emailField, passwordField);
   };
 
   // signupHandler = async evt => {
