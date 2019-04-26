@@ -5,9 +5,7 @@
   "scripts": {
     "start": "npm run server",
     "server": "node ./bin/www",
-    "dev-server": "nodemon ./bin/www",
-    "client": "cd client && npm start",
-    "dev-start": "set NODE_ENV=development&set DEBUG=ask:server:*&concurrently --kill-others \"npm run dev-server\" \"npm run client\""
+    "dev-start": "set NODE_ENV=development&set DEBUG=ask:server:*&concurrently --kill-others \"nodemon ./bin/www\" \"cd client && npm start\""
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -22,8 +20,7 @@
     "jade": "~1.11.0",
     "mongoose": "^5.4.20",
     "morgan": "~1.9.0",
-    "truffle-hdwallet-provider": "^1.0.6",
-    "web3": "^1.0.0-beta.51"
+    "truffle-hdwallet-provider": "^1.0.6"
   },
   "devDependencies": {
     "nodemon": "^1.18.10"
