@@ -1,17 +1,20 @@
 import React, { Component } from "react";
 import { BrowserRouter as Router, Route, Redirect } from "react-router-dom";
+import PropTypes from "prop-types";
 import "./App.css";
 import HomePage from "./HomePage";
 import { connect } from "react-redux";
 import Auth from "./auth/Auth";
 import AppNavBar from "./common/AppNavBar";
-import UserLandingPage from "./protected/user/UserLandingPage";
+import UserLandingPage from "./protected/passenger/UserLandingPage";
 import AdminLandingPage from "./protected/admin/AdminLandingPage";
 import AirlineLandingPage from "./protected/airline/AirlineLandingPage";
 
 class App extends Component {
   state = {};
-
+  static propTypes = {
+    userType: PropTypes.string
+  };
   async componentDidMount() {
     try {
       // Request account access if needed

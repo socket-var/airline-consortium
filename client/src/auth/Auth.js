@@ -1,13 +1,19 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
 import { Route, Switch, Redirect } from "react-router-dom";
-
+import PropTypes from "prop-types";
 import SignupPage from "./SignupPage";
 import LoginPage from "./LoginPage";
 
 import { registerUser, loginUser } from "../redux/actions";
 
 class Auth extends Component {
+  static propTypes = {
+    userType: PropTypes.string,
+    registerUser: PropTypes.func.isRequired,
+    loginUser: PropTypes.func.isRequired
+  };
+
   state = {
     emailField: "",
     passwordField: "",

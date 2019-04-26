@@ -35,6 +35,11 @@ const styles = theme => ({
 });
 
 class AppNavBar extends React.Component {
+  static propTypes = {
+    userType: PropTypes.string,
+    classes: PropTypes.object.isRequired,
+    signoutUser: PropTypes.func.isRequired
+  };
   state = {
     value: 0,
     openRight: false
@@ -132,12 +137,6 @@ class AppNavBar extends React.Component {
     );
   }
 }
-
-AppNavBar.propTypes = {
-  classes: PropTypes.object.isRequired,
-  userType: PropTypes.string.isRequired,
-  signoutHandler: PropTypes.func.isRequired
-};
 
 const mapStateToProps = state => ({
   userType: state.auth.user.userType

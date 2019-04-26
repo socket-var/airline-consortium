@@ -5,9 +5,7 @@ import { Switch, Route } from "react-router-dom";
 import UserDashboard from "./UserDashboard";
 
 export class UserLandingPage extends Component {
-  static propTypes = {
-    // prop: PropTypes
-  };
+  static propTypes = {};
 
   render() {
     const { match } = this.props;

@@ -142,7 +142,9 @@ LoginPage.propTypes = {
   classes: PropTypes.object.isRequired,
   // errorMessage: PropTypes.string.isRequired,
   onInputChange: PropTypes.func.isRequired,
-  onSubmit: PropTypes.func.isRequired
+  onSubmit: PropTypes.func.isRequired,
+  handleAuthType: PropTypes.func.isRequired,
+  loginAs: PropTypes.string.isRequired
 };
 
 export default withStyles(styles)(LoginPage);

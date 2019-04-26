@@ -181,7 +181,10 @@ SignupPage.propTypes = {
   classes: PropTypes.object.isRequired,
   // errorMessage: PropTypes.string.isRequired,
   onInputChange: PropTypes.func.isRequired,
-  onSubmit: PropTypes.func.isRequired
+  onSubmit: PropTypes.func.isRequired,
+  accountAddressField: PropTypes.string,
+  handleAuthType: PropTypes.func.isRequired,
+  registerAs: PropTypes.string.isRequired
 };
 
 export default withStyles(styles)(SignupPage);
