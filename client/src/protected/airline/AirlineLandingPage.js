@@ -2,9 +2,9 @@ import React, { Component } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { Switch, Route } from "react-router-dom";
-import AdminDashboard from "./AdminDashboard";
+import AirlineDashboard from "./AirlineDashboard";
 
-export default class AdminLandingPage extends Component {
+export default class AirlineLandingPage extends Component {
   static propTypes = {
     // prop: PropTypes
   };
@@ -17,7 +17,7 @@ export default class AdminLandingPage extends Component {
           <Route
             path={`${match.path}/dashboard`}
             exact
-            render={props => <AdminDashboard {...props} />}
+            render={props => <AirlineDashboard {...props} />}
           />
         </Switch>
       </div>

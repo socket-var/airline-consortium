@@ -1,10 +1,11 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
-import { registerUser } from "../redux/actions";
+import { Route, Switch, Redirect } from "react-router-dom";
+
 import SignupPage from "./SignupPage";
 import LoginPage from "./LoginPage";
-import { Route, Switch, Redirect } from "react-router-dom";
-import axios from "axios";
+
+import { registerUser, loginUser } from "../redux/actions";
 
 class Auth extends Component {
   state = {
@@ -12,7 +13,13 @@ class Auth extends Component {
     passwordField: "",
     confirmPasswordField: "",
     accountAddressField: "",
-    privateKeyField: ""
+    depositField: 0,
+    registerAs: "",
+    loginAs: ""
+  };
+
+  handleAuthType = name => event => {
+    this.setState({ [name]: event.target.value });
   };
 
   onInputChange = evt => {
@@ -22,165 +29,100 @@ class Auth extends Component {
   };
 
   signupHandler = evt => {
-    const {
-      emailField,
-      passwordField,
-      confirmPasswordField,
-      privateKeyField,
-      accountAddressField
-    } = this.state;
-
     evt.preventDefault();
-    this.props.registerUser(
-      accountAddressField,
-      emailField,
-      passwordField,
-      confirmPasswordField,
-      privateKeyField
-    );
+    this.props.registerUser(Object.assign({}, this.state));
   };
 
   loginHandler = evt => {
-    const { emailField, passwordField } = this.state;
     evt.preventDefault();
-    this.props.loginUser(emailField, passwordField);
+    this.props.loginUser(Object.assign({}, this.state));
   };
 
-  // signupHandler = async evt => {
-  //   evt.preventDefault();
+  accountSwitchListener = accounts => {
+    this.setState({
+      accountAddressField: window.web3.eth.accounts[0] || ""
+    });
+  };
 
-  //   const {
-  //     accountAddressField,
-  //     emailField,
-  //     passwordField,
-  //     confirmPasswordField,
-  //     privateKeyField
-  //   } = this.state;
+  // for now only need account change detection for signup
+  componentDidMount() {
+    window.ethereum.on("accountsChanged", this.accountSwitchListener);
+    this.setState({
+      accountAddressField: window.web3.eth.accounts[0] || ""
+    });
+  }
 
-  //   if (passwordField === confirmPasswordField) {
-  //     try {
-  //       const signupResult = axios.post("/auth/signup", {
-  //         accountAddress: accountAddressField,
-  //         email: emailField,
-  //         password: passwordField,
-  //         privateKey: privateKeyField
-  //       });
+  componentWillUnmount() {
+    window.ethereum.off("accountsChanged", this.accountSwitchListener);
+  }
 
-  //       const { user, message } = signupResult.data;
-
-  //       this.props.openSnackbar(message);
-  //       this.setState({
-  //         isLoggedIn: true,
-  //         currentUserId: user._id,
-  //         accountBalance: user.accountBalance
-  //       });
-  //     } catch (err) {
-  //       this.catchFunction(err);
-  //     }
-  //   } else {
-  //     this.props.openSnackbar("Passwords do not match. Please try again!");
-  //     this.setState({
-  //       message: "Passwords do not match. Please try again!"
-  //     });
-  //   }
-  // };
-
-  // loginHandler = async evt => {
-  //   evt.preventDefault();
-
-  //   const { emailField, passwordField } = this.state;
-
-  //   try {
-  //     const loginResult = await axios.post("/auth/login", {
-  //       email: emailField,
-  //       password: passwordField
-  //     });
-  //     const { user, message } = loginResult.data;
-  //     this.props.openSnackbar(message);
-  //     if (user.isAdmin) {
-  //       this.setState({
-  //         isAdminLoggedIn: true,
-  //         currentUserId: user._id,
-  //         accountBalance: user.accountBalance
-  //       });
-  //     } else {
-  //       this.setState({
-  //         isLoggedIn: true,
-  //         currentUserId: user._id,
-  //         accountBalance: user.accountBalance
-  //       });
-  //     }
-  //   } catch (err) {
-  //     this.catchFunction(err);
-  //   }
-  // }
+  renderAuthPage = (AuthPage, customProps) => routerProps => {
+    const { userType } = this.props;
+    if (userType === "passenger") {
+      return <Redirect to="/passenger/dashboard" />;
+    } else if (userType === "airline") {
+      return <Redirect to="/airline/dashboard" />;
+    } else if (userType === "admin") {
+      return <Redirect to="/admin/dashboard" />;
+    } else {
+      return (
+        <AuthPage
+          {...routerProps}
+          {...customProps}
+          accountAddressField={this.state.accountAddressField}
+        />
+      );
+    }
+  };
 
   render() {
-    const { match, isLoggedIn, isAdminLoggedIn } = this.props;
+    const { match } = this.props;
+    const { registerAs, loginAs } = this.state;
+
+    const signupProps = {
+      onSubmit: this.signupHandler,
+      handleAuthType: this.handleAuthType,
+      onInputChange: this.onInputChange,
+      registerAs
+    };
+
+    const loginProps = {
+      onSubmit: this.loginHandler,
+      handleAuthType: this.handleAuthType,
+      onInputChange: this.onInputChange,
+      loginAs
+    };
 
     return (
       <Switch>
-        {isLoggedIn ? <Redirect to="/user/dashboard" /> : ""}
-        {isAdminLoggedIn ? <Redirect to="/admin/dashboard" /> : ""}
         {/* TODO: if logged in redirect to dashboard */}
         <Route
           path={`${match.path}/register`}
           exact
-          render={props => (
-            <SignupPage
-              {...props}
-              onSubmit={this.signupHandler}
-              onInputChange={this.onInputChange}
-            />
-          )}
+          render={this.renderAuthPage(SignupPage, signupProps)}
         />
         <Route
           path={`${match.path}/login`}
           exact
-          render={props => (
-            <LoginPage
-              {...props}
-              onSubmit={this.loginHandler}
-              onInputChange={this.onInputChange}
-            />
-          )}
+          render={this.renderAuthPage(LoginPage, loginProps)}
         />
       </Switch>
     );
   }
 }
 
-const mapStateToProps = state => ({
-  isLoggedIn: state.auth.isLoggedIn
-});
+const mapStateToProps = state => {
+  return {
+    userType: state.auth.user.userType
+  };
+};
 
 const mapDispatchToProps = {
-  registerUser
+  registerUser,
+  loginUser
 };
 
 export default connect(
   mapStateToProps,
   mapDispatchToProps
 )(Auth);
-
-// renderAuthPage(AuthPage, authHandler) {
-//   return props => {
-//     // if (!(isLoggedIn || isAdminLoggedIn)) {
-//     return (
-//       <AuthPage
-//         {...props}
-//         onSubmit={authHandler}
-//         onInputChange={this.onInputChange}
-//       />
-//     );
-//     // } else {
-//     //   if (isLoggedIn) {
-//     //     return <Redirect to="/user" />;
-//     //   }
-
-//     //   if (isAdminLoggedIn) {
-//     //     return <Redirect to="/admin" />;
-//     //   }
-//     // }
-//   };
-// }

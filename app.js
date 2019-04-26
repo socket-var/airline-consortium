@@ -28,10 +28,8 @@ app.use(express.static(path.join(__dirname, "client", "build")));
 
 // auth route
 const authRouter = require("./rest_api/routes/auth");
-const createContract = require("./ethereum/contract");
-
-const contract = createContract(process.env.CONTRACT_ADDRESS);
-
+// TODO: remove contract from server logic
+contract = undefined;
 // use routes
 app.use("/api/auth", authRouter(contract));
 

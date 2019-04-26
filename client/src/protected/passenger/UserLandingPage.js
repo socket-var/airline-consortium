@@ -6,7 +6,7 @@ import UserDashboard from "./UserDashboard";
 
 export class UserLandingPage extends Component {
   static propTypes = {
-    prop: PropTypes
+    // prop: PropTypes
   };
 
   render() {
@@ -17,13 +17,7 @@ export class UserLandingPage extends Component {
           <Route
             path={`${match.path}/dashboard`}
             exact
-            render={props => (
-              <UserDashboard
-                {...props}
-                onSubmit={this.signupHandler}
-                onInputChange={this.onInputChange}
-              />
-            )}
+            render={props => <UserDashboard {...props} />}
           />
         </Switch>
       </div>

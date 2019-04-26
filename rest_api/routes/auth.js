@@ -3,13 +3,12 @@ const authRouter = express.Router();
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 
-const { signTx } = require("../helpers");
 const CryptoJS = require("crypto-js");
 
 module.exports = function(contract) {
   // called when signup post request is made
   async function signupFunction(req, res, next) {
-    const { accountAddress, email, password, privateKey } = req.body;
+    const { accountAddress, email, password, userType } = req.body;
 
     // check if the user exists
     let matchedDoc;
@@ -34,63 +33,41 @@ module.exports = function(contract) {
       }
 
       try {
-        console.debug(`Calling register with ${accountAddress}`);
+        let savedUser;
 
-        const encryptedPk = CryptoJS.AES.encrypt(
-          privateKey,
-          password
-        ).toString();
+        const newUser = new User({
+          bcAddress: accountAddress,
+          email,
+          password: hash,
+          userType,
+          accountAddress: accountAddress || "NA"
+          // TODO: set it to metamask balance
+          // accountBalance: process.env.SIGNUP_BONUS,
+        });
+        savedUser = await newUser.save();
 
-        const receipt = await signTx(
-          accountAddress,
-          process.env.CONTRACT_ADDRESS,
-          privateKey,
-          contract.methods.register().encodeABI()
-        );
-
-        if (receipt) {
-          let savedUser;
-
-          const newUser = new User({
-            bcAddress: accountAddress,
-            email,
-            password: hash,
-            isAdmin: false,
-            accountBalance: process.env.SIGNUP_BONUS,
-            encryptedPk
-          });
-          try {
-            savedUser = await newUser.save();
-          } catch (err) {
-            console.error(err);
-            return res
-              .status(401)
-              .json({ message: "Signup failed. Try again" });
-          }
-          res.status(200).json({ message: "Signup success!", user: savedUser });
-        }
+        res.status(200).json({ message: "Signup success!", user: savedUser });
       } catch (err) {
         console.error(err);
-        return res.status(500).json({ message: "Blockchain error. Try again" });
+        return res.status(401).json({ message: "Signup failed. Try again" });
       }
     } else {
       res
         .status(401)
-        .send({ message: "Account with this email already exists" });
+        .json({ message: "Account with this email already exists" });
     }
   }
 
   // called when login post request
   async function loginFunction(req, res, next) {
-    const email = req.body.email;
-    const password = req.body.password;
+    const { email, password, userType } = req.body;
 
     let userDoc;
     try {
-      userDoc = await User.findOne({ email });
+      userDoc = await User.findOne({ email, userType });
     } catch (err) {
       console.error(err);
-      return res.status(500).send({ message: "Network error. Try again." });
+      return res.status(500).send({ message: "Server error. Try again." });
     }
 
     if (userDoc) {
@@ -103,9 +80,10 @@ module.exports = function(contract) {
       }
       res.status(401).json({ message: "Email or password is incorrect" });
     } else {
-      res
-        .status(401)
-        .json({ message: "Your account does not exist, please register" });
+      res.status(401).json({
+        message:
+          "The account with the given type does not exist, please register"
+      });
     }
   }
 

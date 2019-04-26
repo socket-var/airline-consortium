@@ -8,6 +8,7 @@ import Tab from "@material-ui/core/Tab";
 import Typography from "@material-ui/core/Typography";
 import Toolbar from "@material-ui/core/Toolbar";
 import Button from "@material-ui/core/Button";
+import { signoutUser } from "../redux/actions";
 
 import { connect } from "react-redux";
 
@@ -49,18 +50,19 @@ class AppNavBar extends React.Component {
     });
   };
 
+  signoutHandler = evt => {
+    evt.preventDefault();
+    this.props.signoutUser();
+  };
+
   render() {
-    const { classes, isLoggedIn, isAdminLoggedIn, signoutHandler } = this.props;
+    const { classes, userType } = this.props;
     const { value, openRight } = this.state;
 
     return (
       <div className={classes.root}>
         <AppBar position="static">
-          <Toolbar
-            className={
-              isLoggedIn || isAdminLoggedIn ? "" : classes.floatToolBarItems
-            }
-          >
+          <Toolbar className={userType ? "" : classes.floatToolBarItems}>
             <Typography
               variant="h3"
               color="inherit"
@@ -71,7 +73,7 @@ class AppNavBar extends React.Component {
               ASK<sup>&copy;</sup>
             </Typography>
 
-            {!(isAdminLoggedIn || isLoggedIn) && (
+            {!userType && (
               <div>
                 <Button
                   color="inherit"
@@ -92,7 +94,7 @@ class AppNavBar extends React.Component {
               </div>
             )}
 
-            {isLoggedIn && (
+            {(userType === "passenger" || userType === "airline") && (
               <React.Fragment>
                 <Tabs
                   value={value}
@@ -101,7 +103,7 @@ class AppNavBar extends React.Component {
                 >
                   <Tab
                     label="Dashboard"
-                    to="/user/dashboard"
+                    to={`/${userType}/dashboard`}
                     component={Link}
                   />
                 </Tabs>
@@ -115,11 +117,11 @@ class AppNavBar extends React.Component {
               </React.Fragment>
             )}
 
-            {(isAdminLoggedIn || isLoggedIn) && (
+            {userType && (
               <Button
                 color="inherit"
                 className={classes.defaultChild}
-                onClick={signoutHandler}
+                onClick={this.signoutHandler}
               >
                 Sign out
               </Button>
@@ -133,16 +135,17 @@ class AppNavBar extends React.Component {
 
 AppNavBar.propTypes = {
   classes: PropTypes.object.isRequired,
-  isLoggedIn: PropTypes.bool.isRequired,
+  userType: PropTypes.string.isRequired,
   signoutHandler: PropTypes.func.isRequired
 };
 
 const mapStateToProps = state => ({
-  isLoggedIn: state.auth.isLoggedIn,
-  isAdminLoggedIn: state.auth.isAdminLoggedIn
+  userType: state.auth.user.userType
 });
 
-const mapDispatchToProps = {};
+const mapDispatchToProps = {
+  signoutUser
+};
 
 export default withStyles(styles)(
   connect(

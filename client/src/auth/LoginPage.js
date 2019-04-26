@@ -5,12 +5,16 @@ import Button from "@material-ui/core/Button";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import FormControl from "@material-ui/core/FormControl";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
+import FormLabel from "@material-ui/core/FormLabel";
+import FormGroup from "@material-ui/core/FormGroup";
 import Checkbox from "@material-ui/core/Checkbox";
 import Input from "@material-ui/core/Input";
 import InputLabel from "@material-ui/core/InputLabel";
 import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
 import Paper from "@material-ui/core/Paper";
 import Typography from "@material-ui/core/Typography";
+import Radio from "@material-ui/core/Radio";
+import RadioGroup from "@material-ui/core/RadioGroup";
 import withStyles from "@material-ui/core/styles/withStyles";
 
 const styles = theme => ({
@@ -43,10 +47,20 @@ const styles = theme => ({
   },
   submit: {
     marginTop: theme.spacing.unit * 3
+  },
+  formControl: {
+    marginTop: theme.spacing.unit * 3
   }
 });
 
-const LoginPage = ({ classes, errorMessage, onInputChange, onSubmit }) => {
+const LoginPage = ({
+  classes,
+  errorMessage,
+  onInputChange,
+  onSubmit,
+  handleAuthType,
+  loginAs
+}) => {
   return (
     <main className={classes.main}>
       <CssBaseline />
@@ -86,6 +100,29 @@ const LoginPage = ({ classes, errorMessage, onInputChange, onSubmit }) => {
           <div>
             <a href="/auth/register">Create Account</a>
           </div>
+
+          <FormControl component="fieldset" className={classes.formControl}>
+            <FormLabel component="legend">Login as:</FormLabel>
+            <RadioGroup
+              aria-label="login as"
+              name="loginAs"
+              className={classes.group}
+              value={loginAs}
+              onChange={handleAuthType("loginAs")}
+            >
+              <FormControlLabel
+                value="passenger"
+                control={<Radio />}
+                label="Passenger"
+              />
+              <FormControlLabel
+                value="airline"
+                control={<Radio />}
+                label="Airline"
+              />
+            </RadioGroup>
+          </FormControl>
+
           <Button
             type="submit"
             fullWidth

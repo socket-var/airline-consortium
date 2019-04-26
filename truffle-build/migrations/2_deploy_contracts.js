@@ -9,7 +9,7 @@ module.exports = function(deployer, network) {
   } else {
     /* if deployed on ganache */
     deployer.deploy(ASK, {
-      from: "0x629a11628711b02e350837Ca7F642140300fb1B3"
+      from: "0xBE4fc737ff90382Cd1AFeD77b29B8D0B22d02052"
     });
   }
 };

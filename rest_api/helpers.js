@@ -1,4 +1,4 @@
-const web3 = require("../ethereum/web3Connect");
+const web3 = require("../client/src/ethereum/web3Connect");
 const Tx = require("ethereumjs-tx");
 
 async function signTx(fromAddress, toAddress, privateKeyOfFrom, dataAsAbi) {
