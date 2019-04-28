@@ -111,6 +111,13 @@ class AppNavBar extends React.Component {
                     to={`/${userType}/dashboard`}
                     component={Link}
                   />
+                  {userType === "passenger" && (
+                    <Tab
+                      label="Purchases"
+                      to={`/${userType}/purchases`}
+                      component={Link}
+                    />
+                  )}
                 </Tabs>
                 <Button
                   color="inherit"

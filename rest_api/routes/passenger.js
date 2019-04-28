@@ -1,5 +1,5 @@
 const express = require("express");
-const airlineRouter = express.Router();
+const passengerRouter = express.Router();
 const Airline = require("../models/Airline");
 const Flight = require("../models/Flight");
 const Passenger = require("../models/Passenger");
@@ -45,43 +45,90 @@ async function getAvailableFlights(req, res, next) {
     res.status(401).json({ message: "User does not exist" });
   }
 }
-
+/**
+ * check if seats available - Flight
+ * create a ticket - Ticket
+ * add ticket to purchases - Passenger
+ * decrement number of seats - Flight
+ */
 async function bookTicket(req, res, next) {
-  const { airlineId } = req.body;
+  const { userId, flightId } = req.body;
 
   // check if the user exists
-  let matchedDoc;
+  let userDoc, flightDoc;
   try {
-    matchedDoc = await Airline.findOne({ _id: airlineId });
+    userDoc = await Passenger.findOne({ _id: userId });
+    flightDoc = await Flight.findOne({ _id: flightId });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Server error, try again" });
   }
 
-  if (matchedDoc) {
-    console.log(matchedDoc);
-    const { flights } = matchedDoc;
+  if (userDoc && flightDoc) {
+    if (flightDoc.numSeatsRemaining > 0) {
+      try {
+        const ticket = new Ticket({
+          passenger: userId,
+          flight: flightId,
+          status: "booked"
+        });
 
-    try {
-      const matchedFlights = await Flight.find({ _id: { $in: flights } });
-      console.debug(matchedFlights);
+        flightDoc.numSeatsRemaining -= 1;
+        flightDoc.passengers.push(userId);
 
-      res.status(200).json({
-        message: "Listing flights succeeded",
-        flights: matchedFlights
-      });
-    } catch (err) {
-      console.error(err);
+        await flightDoc.save();
+        const newTicket = await ticket.save();
+        userDoc.purchases.push(newTicket._id);
+        await userDoc.save();
+
+        res.status(200).json({ message: "Booking success!!" });
+      } catch (err) {
+        console.error(err);
+        return res
+          .status(500)
+          .json({ message: "Server error, booking failed!!" });
+      }
+    } else {
       return res
         .status(401)
-        .json({ message: "Listing flights failed. Try again" });
+        .json({ message: "Sorry!! All seats are now sold out." });
     }
   } else {
-    res.status(401).json({ message: "Airline doesn't exist" });
+    res.status(401).json({ message: "User or flight ID not valid!!" });
   }
 }
 
-airlineRouter.route("/get-available-flights").post(getAvailableFlights);
-airlineRouter.route("/book-ticket").post(bookTicket);
+async function getPurchases(req, res, next) {
+  const { userId } = req.body;
 
-module.exports = airlineRouter;
+  // check if the user exists
+  let userDoc;
+  try {
+    userDoc = await Passenger.findOne({ _id: userId }).populate({
+      path: "purchases",
+      populate: {
+        path: "flight",
+        populate: { path: "airline", select: "name" }
+      }
+    });
+    console.debug(userDoc);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Server error, try again" });
+  }
+
+  if (userDoc) {
+    res.status(200).json({
+      message: "Listing flights successful",
+      purchases: userDoc.purchases
+    });
+  } else {
+    res.status(401).json({ message: "User does not exist" });
+  }
+}
+
+passengerRouter.route("/get-available-flights").post(getAvailableFlights);
+passengerRouter.route("/book-ticket").post(bookTicket);
+passengerRouter.route("/get-purchases").post(getPurchases);
+
+module.exports = passengerRouter;

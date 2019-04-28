@@ -8,7 +8,8 @@ const passengerSchema = new mongoose.Schema({
   // contains ticket IDs
   purchases: [
     {
-      type: ObjectId
+      type: ObjectId,
+      ref: "Ticket"
     }
   ]
 });

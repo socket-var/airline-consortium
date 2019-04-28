@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { Switch, Route } from "react-router-dom";
 import PassengerDashboard from "./PassengerDashboard";
+import PurchasesPage from "./PurchasesPage";
 
 export class PassengerLandingPage extends Component {
   static propTypes = {};
@@ -16,6 +17,11 @@ export class PassengerLandingPage extends Component {
             path={`${match.path}/dashboard`}
             exact
             render={props => <PassengerDashboard {...props} />}
+          />
+          <Route
+            path={`${match.path}/purchases`}
+            exact
+            render={props => <PurchasesPage {...props} />}
           />
         </Switch>
       </div>
