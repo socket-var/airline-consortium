@@ -28,10 +28,13 @@ app.use(express.static(path.join(__dirname, "client", "build")));
 
 // auth route
 const authRouter = require("./rest_api/routes/auth");
-// TODO: remove contract from server logic
-contract = undefined;
+const airlineRouter = require("./rest_api/routes/airline");
+const passengerRouter = require("./rest_api/routes/passenger");
+
 // use routes
-app.use("/api/auth", authRouter(contract));
+app.use("/api/auth", authRouter);
+app.use("/api/airline", airlineRouter);
+app.use("/api/passenger", passengerRouter);
 
 // needed for Single-page application to reroute to index page
 app.get("*", function(req, res, next) {

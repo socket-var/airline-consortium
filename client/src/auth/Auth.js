@@ -17,6 +17,8 @@ class Auth extends Component {
   state = {
     emailField: "",
     passwordField: "",
+    nameField: "",
+    airlineNameField: "",
     confirmPasswordField: "",
     accountAddressField: "",
     depositField: 0,

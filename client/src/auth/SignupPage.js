@@ -83,6 +83,16 @@ const SignupPage = ({
               />
             </FormControl>
             <FormControl margin="normal" required fullWidth>
+              <InputLabel htmlFor="nameField">Name</InputLabel>
+              <Input
+                id="nameField"
+                name="nameField"
+                autoComplete="nameField"
+                autoFocus
+                onChange={onInputChange}
+              />
+            </FormControl>
+            <FormControl margin="normal" required fullWidth>
               <InputLabel htmlFor="passwordField">Password</InputLabel>
               <Input
                 name="password"

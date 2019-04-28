@@ -20,6 +20,7 @@ import web3Instance from "../ethereum/initMetamask";
  */
 export const registerUser = formFields => async dispatch => {
   const {
+    nameField,
     emailField,
     passwordField,
     confirmPasswordField,
@@ -49,6 +50,7 @@ export const registerUser = formFields => async dispatch => {
 
     try {
       const result = await axios.post("/api/auth/signup", {
+        name: nameField,
         email: emailField,
         password: passwordField,
         userType: registerAs,
@@ -57,11 +59,14 @@ export const registerUser = formFields => async dispatch => {
 
       console.log(result.data);
 
+      const user = Object.assign(
+        { userType: result.data.userType },
+        result.data.user
+      );
+
       dispatch({
         type: REGISTER_USER_SUCCESS,
-        payload: {
-          user: result.data.user
-        }
+        payload: { user }
       });
     } catch (err) {
       console.error(err);
@@ -93,9 +98,14 @@ export const loginUser = formFields => async dispatch => {
     });
     console.log(result.data);
 
+    const user = Object.assign(
+      { userType: result.data.userType },
+      result.data.user
+    );
+
     dispatch({
       type: LOGIN_USER_SUCCESS,
-      payload: { user: result.data.user }
+      payload: { user }
     });
   } catch (err) {
     console.error(err);

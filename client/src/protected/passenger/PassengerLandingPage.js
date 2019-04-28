@@ -2,9 +2,9 @@ import React, { Component } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { Switch, Route } from "react-router-dom";
-import UserDashboard from "./UserDashboard";
+import PassengerDashboard from "./PassengerDashboard";
 
-export class UserLandingPage extends Component {
+export class PassengerLandingPage extends Component {
   static propTypes = {};
 
   render() {
@@ -15,7 +15,7 @@ export class UserLandingPage extends Component {
           <Route
             path={`${match.path}/dashboard`}
             exact
-            render={props => <UserDashboard {...props} />}
+            render={props => <PassengerDashboard {...props} />}
           />
         </Switch>
       </div>
@@ -30,4 +30,4 @@ const mapDispatchToProps = {};
 export default connect(
   mapStateToProps,
   mapDispatchToProps
-)(UserLandingPage);
+)(PassengerLandingPage);

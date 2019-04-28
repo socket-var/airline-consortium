@@ -6,7 +6,7 @@ import HomePage from "./HomePage";
 import { connect } from "react-redux";
 import Auth from "./auth/Auth";
 import AppNavBar from "./common/AppNavBar";
-import UserLandingPage from "./protected/passenger/UserLandingPage";
+import PassengerLandingPage from "./protected/passenger/PassengerLandingPage";
 import AdminLandingPage from "./protected/admin/AdminLandingPage";
 import AirlineLandingPage from "./protected/airline/AirlineLandingPage";
 
@@ -41,7 +41,7 @@ class App extends Component {
                 // TODO: notify that not allowed for this user type
                 <Redirect to="/auth/login" />
               ) : (
-                <UserLandingPage
+                <PassengerLandingPage
                   {...props}
                   accountAddressField={this.state.accountAddressField}
                 />
