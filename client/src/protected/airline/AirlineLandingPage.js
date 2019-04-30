@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { Switch, Route } from "react-router-dom";
 import AirlineDashboard from "./AirlineDashboard";
+import AirlineRequestsView from "./AirlineRequestsView";
 
 export default class AirlineLandingPage extends Component {
   static propTypes = {
@@ -18,6 +19,11 @@ export default class AirlineLandingPage extends Component {
             path={`${match.path}/dashboard`}
             exact
             render={props => <AirlineDashboard {...props} />}
+          />
+          <Route
+            path={`${match.path}/pending-requests`}
+            exact
+            render={props => <AirlineRequestsView {...props} />}
           />
         </Switch>
       </div>

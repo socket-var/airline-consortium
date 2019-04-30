@@ -8,6 +8,18 @@ import PurchasesPage from "./PurchasesPage";
 export class PassengerLandingPage extends Component {
   static propTypes = {};
 
+  state = {
+    isFlightChange: false,
+    currentTicket: null
+  };
+
+  setFlightChangeFlag = evt => {
+    this.setState({
+      isFlightChange: true,
+      currentTicket: evt.currentTarget.dataset.key
+    });
+  };
+
   render() {
     const { match } = this.props;
     return (
@@ -21,7 +33,23 @@ export class PassengerLandingPage extends Component {
           <Route
             path={`${match.path}/purchases`}
             exact
-            render={props => <PurchasesPage {...props} />}
+            render={props => (
+              <PurchasesPage
+                {...props}
+                setFlightChangeFlag={this.setFlightChangeFlag}
+              />
+            )}
+          />
+          <Route
+            path={`${match.path}/flight-change`}
+            exact
+            render={props => (
+              <PassengerDashboard
+                {...props}
+                isFlightChange={this.state.isFlightChange}
+                currentTicket={this.state.currentTicket}
+              />
+            )}
           />
         </Switch>
       </div>

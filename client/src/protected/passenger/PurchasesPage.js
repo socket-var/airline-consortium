@@ -6,6 +6,7 @@ import Button from "@material-ui/core/Button";
 import { connect } from "react-redux";
 import withStyles from "@material-ui/core/styles/withStyles";
 import axios from "axios";
+import { Link } from "react-router-dom";
 
 const styles = theme => ({
   button: {
@@ -45,9 +46,11 @@ export class PurchasesPage extends React.Component {
     }
   }
 
+  async selectFlightChange() {}
+
   render() {
     const { purchases } = this.state;
-    const { classes } = this.props;
+    const { classes, setFlightChangeFlag } = this.props;
 
     let flightsList;
 
@@ -60,9 +63,18 @@ export class PurchasesPage extends React.Component {
           <Typography component="p">
             Airline Name: {ticket.flight.airline.name}
           </Typography>
-          {/* <Typography component="p">
-            Number of seats remaining: {ticket.numSeatsRemaining}
-          </Typography> */}
+          <Typography component="p">Status: {ticket.status}</Typography>
+          <Button
+            onClick={setFlightChangeFlag}
+            variant="contained"
+            color="primary"
+            className={classes.submit}
+            data-key={ticket._id}
+            to="/passenger/flight-change"
+            component={Link}
+          >
+            Request
+          </Button>
         </Paper>
       ));
     }

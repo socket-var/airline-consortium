@@ -4,8 +4,6 @@ const Passenger = require("../models/Passenger");
 const Airline = require("../models/Airline");
 const bcrypt = require("bcryptjs");
 
-const CryptoJS = require("crypto-js");
-
 // called when signup post request is made
 async function signupFunction(req, res, next) {
   const { name, accountAddress, email, password, userType } = req.body;

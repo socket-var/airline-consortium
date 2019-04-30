@@ -8,11 +8,7 @@ const FlightChangeRequest = require("../models/FlightChangeRequest");
 
 // called when signup post request is made
 /**
- *
  *  get all flights with num seats greater than zero
- *
- *
- *
  */
 async function getAvailableFlights(req, res, next) {
   const { userId } = req.body;
@@ -51,7 +47,7 @@ async function getAvailableFlights(req, res, next) {
  * add ticket to purchases - Passenger
  * decrement number of seats - Flight
  */
-async function bookTicket(req, res, next) {
+async function bookFlight(req, res, next) {
   const { userId, flightId } = req.body;
 
   // check if the user exists
@@ -70,7 +66,7 @@ async function bookTicket(req, res, next) {
         const ticket = new Ticket({
           passenger: userId,
           flight: flightId,
-          status: "booked"
+          status: "Booked"
         });
 
         flightDoc.numSeatsRemaining -= 1;
@@ -89,9 +85,9 @@ async function bookTicket(req, res, next) {
           .json({ message: "Server error, booking failed!!" });
       }
     } else {
-      return res
-        .status(401)
-        .json({ message: "Sorry!! All seats are now sold out." });
+      return res.status(401).json({
+        message: "All seats are now sold out. Booking unsuccessful!! "
+      });
     }
   } else {
     res.status(401).json({ message: "User or flight ID not valid!!" });
@@ -101,7 +97,6 @@ async function bookTicket(req, res, next) {
 async function getPurchases(req, res, next) {
   const { userId } = req.body;
 
-  // check if the user exists
   let userDoc;
   try {
     userDoc = await Passenger.findOne({ _id: userId }).populate({
@@ -127,8 +122,65 @@ async function getPurchases(req, res, next) {
   }
 }
 
+/**
+ * increase source flight seats remaining
+ * decrease destination flight seats remaining
+ * change ticket status to cancelled due to flight change
+ * issue new ticket from new flight
+ *
+ */
+// TODO: add srcFlight ID from ticket to request
+async function requestFlightChange(req, res, next) {
+  const { userId, ticketId, newFlightId } = req.body;
+  console.debug(req.body);
+
+  let ticketDoc, newFlightDoc;
+  try {
+    ticketDoc = await Ticket.findOne({ _id: ticketId }).populate("flight", [
+      "airline"
+    ]);
+    newFlightDoc = await Flight.findOne({ _id: newFlightId });
+    console.debug(ticketDoc, newFlightDoc);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Server error, try again" });
+  }
+
+  if (ticketDoc && newFlightDoc) {
+    try {
+      ticketDoc.status = "Flight change requested";
+
+      const newRequest = new FlightChangeRequest({
+        requestType: "passenger",
+        ticket: ticketDoc._id,
+        srcAirline: ticketDoc.flight.airline,
+        destFlight: newFlightDoc._id,
+        status: "init"
+      });
+
+      await newRequest.save();
+      await ticketDoc.save();
+
+      res.status(200).json({
+        message: "Flight change requested. Check back shortly",
+        ticket: ticketDoc
+      });
+    } catch (err) {
+      console.error(err);
+      return res
+        .status(401)
+        .json({ message: "Flight change request failed. Contact admin" });
+    }
+  } else {
+    res
+      .status(401)
+      .json({ message: "Invalid flight change request. Contact admin" });
+  }
+}
+
 passengerRouter.route("/get-available-flights").post(getAvailableFlights);
-passengerRouter.route("/book-ticket").post(bookTicket);
+passengerRouter.route("/book-flight").post(bookFlight);
 passengerRouter.route("/get-purchases").post(getPurchases);
+passengerRouter.route("/request-flight-change").post(requestFlightChange);
 
 module.exports = passengerRouter;

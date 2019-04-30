@@ -118,6 +118,13 @@ class AppNavBar extends React.Component {
                       component={Link}
                     />
                   )}
+                  {userType === "airline" && (
+                    <Tab
+                      label="Requests"
+                      to={`/${userType}/pending-requests`}
+                      component={Link}
+                    />
+                  )}
                 </Tabs>
                 <Button
                   color="inherit"

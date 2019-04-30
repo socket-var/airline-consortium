@@ -49,7 +49,8 @@ export class PassengerDashboard extends React.Component {
   bookFlight = async evt => {
     const { currentUser } = this.props;
 
-    const flightId = evt.target.dataset.key;
+    const flightId = evt.currentTarget.dataset.key;
+    console.debug(flightId);
 
     try {
       const result = await axios.post("/api/passenger/book-flight", {
@@ -68,9 +69,24 @@ export class PassengerDashboard extends React.Component {
     }
   };
 
+  requestFlightChange = async evt => {
+    const { currentUser } = this.props;
+    const newFlightId = evt.currentTarget.dataset.key;
+
+    try {
+      await axios.post("/api/passenger/request-flight-change", {
+        userId: currentUser._id,
+        ticketId: this.props.currentTicket,
+        newFlightId
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   render() {
     const { availableFlights } = this.state;
-    const { classes } = this.props;
+    const { classes, isFlightChange } = this.props;
 
     let flightsList;
 
@@ -86,15 +102,28 @@ export class PassengerDashboard extends React.Component {
           <Typography component="p">
             Number of seats remaining: {flight.numSeatsRemaining}
           </Typography>
-          <Button
-            onClick={this.bookFlight}
-            variant="contained"
-            color="primary"
-            className={classes.submit}
-            data-key={flight._id}
-          >
-            Book a ticket
-          </Button>
+          {!isFlightChange && (
+            <Button
+              onClick={this.bookFlight}
+              variant="contained"
+              color="primary"
+              className={classes.submit}
+              data-key={flight._id}
+            >
+              Book a ticket
+            </Button>
+          )}
+          {isFlightChange && (
+            <Button
+              onClick={this.requestFlightChange}
+              variant="contained"
+              color="primary"
+              className={classes.submit}
+              data-key={flight._id}
+            >
+              Request flight change
+            </Button>
+          )}
         </Paper>
       ));
     }
