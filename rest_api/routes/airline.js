@@ -139,16 +139,12 @@ async function getPendingRequests(req, res, next) {
  *
  * @param {*} requestDoc - P2A request
  *
- * check if
- * ticket exists
- * passenger exists
- * dest flight exists
  *
  * create new A2A request with status approvedBySrcAirline
  * update existing P2A request to approvedBySrcAirline
  * update ticket status to awaiting new ticket
  */
-async function handleUserRequest(p2ARequest) {
+async function approveUserRequest(p2ARequest) {
   let retDoc;
   try {
     ticket = await Ticket.findOne({
@@ -198,11 +194,6 @@ async function handleUserRequest(p2ARequest) {
  *
  * @param {*} requestDoc - A2A request
  *
- * check if
- * ticket exists
- * passenger exists
- * src airline exists so that it can pay
- * seats available??
  *
  * decrement destFlight seats
  * increment srcFlight seats
@@ -213,7 +204,7 @@ async function handleUserRequest(p2ARequest) {
  * update old ticket to status cancelled due to flight change
  *
  */
-async function handleAirlineRequest(a2ARequest) {
+async function approveAirlineRequest(a2ARequest) {
   let retDoc;
   console.debug(a2ARequest);
   try {
@@ -274,43 +265,40 @@ async function handleAirlineRequest(a2ARequest) {
 /**
  * if requestType airline call handleAirline else call handleUser
  */
-// TODO: if same airline directly swap
-async function handleRequest(req, res, next) {
+
+async function approveRequest(req, res, next) {
   const { requestId } = req.body;
 
   let requestDoc;
   try {
     requestDoc = await FlightChangeRequest.findOne({ _id: requestId }).populate(
-      "ticket destFlight"
+      [
+        { path: "ticket" },
+        { path: "destFlight", populate: { path: "airline" } },
+        { path: "srcAirline" }
+      ]
     );
-    let updatedRequestDoc = {};
-    if (
-      requestDoc &&
-      requestDoc.ticket &&
-      requestDoc.ticket.passenger &&
-      requestDoc.destFlight
-    ) {
-      if (requestDoc.status === "init") {
-        updatedRequestDoc = await handleUserRequest(requestDoc);
-      } else if (requestDoc.status === "approvedBySrcAirline") {
-        updatedRequestDoc = await handleAirlineRequest(requestDoc);
-      }
-      console.debug(updatedRequestDoc);
-      if (Object.keys(updatedRequestDoc).length > 0) {
-        return res.status(200).json({
-          message: "Awaiting new ticket for flight change",
-          updatedRequest: updatedRequestDoc
-        });
-      }
 
-      if (requestDoc.status === "init") {
-        requestDoc.status = "rejectedBySrcAirline";
-      } else if (requestDoc.status === "approvedBySrcAirline") {
-        requestDoc.status = "rejectedByDestAirline";
-      }
-
-      updatedRequestDoc = await requestDoc.save();
+    if (requestDoc.status === "init") {
+      updatedRequestDoc = await approveUserRequest(requestDoc);
+    } else if (requestDoc.status === "approvedBySrcAirline") {
+      updatedRequestDoc = await approveAirlineRequest(requestDoc);
     }
+    console.debug(updatedRequestDoc);
+    if (Object.keys(updatedRequestDoc).length > 0) {
+      return res.status(200).json({
+        message: "Awaiting new ticket for flight change",
+        updatedRequest: updatedRequestDoc
+      });
+    }
+
+    if (requestDoc.status === "init") {
+      requestDoc.status = "rejectedBySrcAirline";
+    } else if (requestDoc.status === "approvedBySrcAirline") {
+      requestDoc.status = "rejectedByDestAirline";
+    }
+
+    updatedRequestDoc = await requestDoc.save();
 
     res
       .status(200)
@@ -321,9 +309,114 @@ async function handleRequest(req, res, next) {
   }
 }
 
+/**
+ *
+ * if reqType passenger check if
+ * check if
+ * ticket exists
+ * passenger exists
+ * dest flight exists
+ *
+ * if reqType airline check if
+ * ticket exists
+ * passenger exists
+ * src airline exists so that it can pay
+ * seats available??
+ *
+ */
+async function checkRequest(req, res, next) {
+  const { requestId } = req.body;
+
+  let requestDoc;
+  try {
+    requestDoc = await FlightChangeRequest.findOne({ _id: requestId }).populate(
+      [
+        { path: "ticket" },
+        { path: "destFlight", populate: { path: "airline" } },
+        { path: "srcAirline" }
+      ]
+    );
+    let updatedRequestDoc = {};
+    if (
+      requestDoc &&
+      requestDoc.ticket &&
+      requestDoc.ticket.passenger &&
+      requestDoc.destFlight
+    ) {
+      res.status(200).json({ message: "Valid request", request: requestDoc });
+    } else {
+      if (requestDoc.status === "init") {
+        requestDoc.status = "rejectedBySrcAirline";
+      } else if (requestDoc.status === "approvedBySrcAirline") {
+        requestDoc.status = "rejectedByDestAirline";
+      }
+
+      // update ticket to booked but rejected
+      ticket.status =
+        "Booked. Flight change request rejected by chosen airline";
+      await ticket.save();
+
+      updatedRequestDoc = await requestDoc.save();
+
+      res
+        .status(200)
+        .json({ message: "Request rejected", request: updatedRequestDoc });
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error!!" });
+  }
+}
+
+async function getPendingTxs(req, res, next) {
+  const { requestId } = req.body;
+
+  let requestDoc;
+  try {
+    requestDoc = await FlightChangeRequest.findOne({ _id: requestId }).populate(
+      [
+        { path: "ticket" },
+        { path: "destFlight", populate: { path: "airline" } },
+        { path: "srcAirline" }
+      ]
+    );
+    let updatedRequestDoc = {};
+    if (
+      requestDoc &&
+      requestDoc.ticket &&
+      requestDoc.ticket.passenger &&
+      requestDoc.destFlight
+    ) {
+      res.status(200).json({ message: "Valid request", request: requestDoc });
+    } else {
+      if (requestDoc.status === "init") {
+        requestDoc.status = "rejectedBySrcAirline";
+      } else if (requestDoc.status === "approvedBySrcAirline") {
+        requestDoc.status = "rejectedByDestAirline";
+      }
+
+      // update ticket to booked but rejected
+      ticket.status =
+        "Booked. Flight change request rejected by chosen airline";
+      await ticket.save();
+
+      updatedRequestDoc = await requestDoc.save();
+
+      res
+        .status(200)
+        .json({ message: "Request rejected", request: updatedRequestDoc });
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error!!" });
+  }
+}
+
 airlineRouter.route("/add-flight").post(addFlight);
 airlineRouter.route("/list-flights").post(listFlights);
 airlineRouter.route("/get-pending-requests").post(getPendingRequests);
-airlineRouter.route("/handle-request").post(handleRequest);
+airlineRouter.route("/check-request").post(checkRequest);
+airlineRouter.route("/approve-request").post(approveRequest);
+airlineRouter.route("/get-pending-txs").post(getPendingTxs);
 
 module.exports = airlineRouter;

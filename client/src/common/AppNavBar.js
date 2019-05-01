@@ -61,7 +61,7 @@ class AppNavBar extends React.Component {
   };
 
   render() {
-    const { classes, userType } = this.props;
+    const { classes, userType, userName } = this.props;
     const { value, openRight } = this.state;
 
     return (
@@ -119,31 +119,34 @@ class AppNavBar extends React.Component {
                     />
                   )}
                   {userType === "airline" && (
-                    <Tab
-                      label="Requests"
-                      to={`/${userType}/pending-requests`}
-                      component={Link}
-                    />
+                    <React.Fragment>
+                      <Tab
+                        label="Requests"
+                        to={`/${userType}/pending-requests`}
+                        component={Link}
+                      />
+                      <Tab
+                        label="Requests"
+                        to={`/${userType}/pending-transactions`}
+                        component={Link}
+                      />
+                    </React.Fragment>
                   )}
                 </Tabs>
-                <Button
-                  color="inherit"
-                  className={classes.defaultChild}
-                  onClick={this.toggleDrawer(true)}
-                >
-                  Your Account
-                </Button>
               </React.Fragment>
             )}
 
             {userType && (
-              <Button
-                color="inherit"
-                className={classes.defaultChild}
-                onClick={this.signoutHandler}
-              >
-                Sign out
-              </Button>
+              <React.Fragment>
+                <p>Welcome {userName}</p>
+                <Button
+                  color="inherit"
+                  className={classes.defaultChild}
+                  onClick={this.signoutHandler}
+                >
+                  Sign out
+                </Button>
+              </React.Fragment>
             )}
           </Toolbar>
         </AppBar>
@@ -153,7 +156,8 @@ class AppNavBar extends React.Component {
 }
 
 const mapStateToProps = state => ({
-  userType: state.auth.user.userType
+  userType: state.auth.user.userType,
+  userName: state.auth.user.name
 });
 
 const mapDispatchToProps = {
