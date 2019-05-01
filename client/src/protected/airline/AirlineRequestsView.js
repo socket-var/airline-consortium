@@ -69,7 +69,7 @@ class AirlineRequestsView extends React.Component {
       const destAirlineAddress = destAirline.accountAddress;
       console.debug(checkData, srcAirline, destAirline);
       console.debug(srcAirlineAddress, destAirlineAddress, checkData._id);
-      let resultBC, paymentBC;
+      let resultBC;
 
       // if valid passenger request, call request() method in the contract, then call approve-request
       if (
@@ -109,12 +109,6 @@ class AirlineRequestsView extends React.Component {
               .send({
                 from: destAirlineAddress
               });
-            paymentBC = await askContract.methods
-              .settlePayment(destAirlineAddress)
-              .send({
-                from: srcAirlineAddress
-              });
-            console.debug(paymentBC);
           }
 
           const approveResult = await axios.post(
@@ -202,7 +196,6 @@ class AirlineRequestsView extends React.Component {
             className={classes.submit}
             data-key={request._id}
             data-idx={idx}
-            component={Link}
           >
             Handle request
           </Button>

@@ -1,10 +1,14 @@
 import React from "react";
 import withStyles from "@material-ui/core/styles/withStyles";
 import Paper from "@material-ui/core/Paper";
+import Button from "@material-ui/core/Button";
 import Typography from "@material-ui/core/Typography";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
+import { Link } from "react-router-dom";
 import axios from "axios";
+import askContract from "../../ethereum/contract";
+import web3Instance from "../../ethereum/initMetamask";
 
 const styles = theme => ({
   button: {
@@ -20,105 +24,82 @@ const styles = theme => ({
   }
 });
 
-class AirlineDashboard extends React.Component {
+class PendingTransactionsPage extends React.Component {
   static propTypes = {};
 
   state = {
-    flightNameField: "",
-    numSeatsField: "",
-    flights: [],
-    open: false
+    transactions: []
   };
 
-  handleClickOpen = () => {
-    this.setState({ open: true });
-  };
+  makePayment = async evt => {
+    let { key, idx } = evt.currentTarget.dataset;
+    key = JSON.parse(key);
+    console.debug(key, idx);
+    try {
+      const paymentBC = await askContract.methods
+        .settlePayment(key.payee.accountAddress)
+        .send({
+          from: key.payer.accountAddress,
+          value: web3Instance.utils.toWei("10", "ether")
+        });
+      console.debug(paymentBC);
 
-  handleClose = () => {
-    this.setState({ open: false });
-  };
+      this.setState(prevState => {
+        const newState = Object.assign({}, prevState);
+        newState.transactions.splice(idx, 1);
 
-  onInputChange = evt => {
-    this.setState({
-      [evt.target.id]: evt.target.value
-    });
+        return newState;
+      });
+    } catch (err) {
+      console.debug(err);
+    }
   };
 
   async componentDidMount() {
     try {
-      // TODO: protect with JWT later
-
-      const result = await axios.post("/api/airline/list-flights", {
+      const result = await axios.post("/api/airline/get-pending-txns", {
         airlineId: this.props.airlineId
       });
 
       console.debug(result.data);
 
-      this.setState({ flights: result.data.flights });
+      this.setState({ transactions: result.data.transactions });
     } catch (err) {
       console.error(err);
     }
   }
 
-  addNewFlight = async () => {
-    try {
-      // TODO: protect with JWT later
-
-      const { flightNameField, numSeatsField } = this.state;
-
-      const result = await axios.post("/api/airline/add-flight", {
-        airlineId: this.props.airlineId,
-        flightName: flightNameField,
-        numSeats: parseInt(numSeatsField)
-      });
-
-      console.debug(result.data);
-
-      this.setState(prevState => {
-        const state = Object.assign({}, prevState);
-        state.flights.push(result.data.flight);
-        state.open = false;
-        return state;
-      });
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
   render() {
-    const { flights } = this.state;
+    const { transactions } = this.state;
     const { classes } = this.props;
 
-    let flightsList;
+    let txList;
 
-    if (flights.length > 0) {
-      flightsList = flights.map((flight, idx) => (
+    if (transactions.length > 0) {
+      txList = transactions.map((tx, idx) => (
         <Paper key={idx} className={classes.listItem} elevation={1}>
-          <Typography variant="h5" component="h3">
-            {flight.flightName}
-          </Typography>
-          <Typography component="p">
-            Seating Capacity: {flight.capacity}
-          </Typography>
-          <Typography component="p">
-            Number of seats remaining: {flight.numSeatsRemaining}
-          </Typography>
+          <Typography component="h3">From: {tx.payer._id}</Typography>
+          <Typography component="p">To: {tx.payee._id}</Typography>
+          <Typography component="p">Amount: {tx.amount} ether</Typography>
+          <Button
+            onClick={this.makePayment}
+            variant="contained"
+            color="primary"
+            className={classes.submit}
+            data-key={JSON.stringify(tx)}
+            data-idx={idx}
+            component={Link}
+          >
+            Make payment
+          </Button>
         </Paper>
       ));
     }
 
     return (
       <div>
-        <AddNewFlightForm
-          onInputChange={this.onInputChange}
-          onSubmit={this.addNewFlight}
-          open={this.state.open}
-          handleClickOpen={this.handleClickOpen}
-          handleClose={this.handleClose}
-        />
-
         <div>
-          <ul>{flightsList}</ul>
+          <ul>{txList}</ul>
         </div>
       </div>
     );
@@ -135,5 +116,5 @@ export default withStyles(styles)(
   connect(
     mapStateToProps,
     mapDispatchToProps
-  )(AirlineDashboard)
+  )(PendingTransactionsPage)
 );

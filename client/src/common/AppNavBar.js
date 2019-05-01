@@ -118,20 +118,18 @@ class AppNavBar extends React.Component {
                       component={Link}
                     />
                   )}
-                  {userType === "airline" && (
-                    <React.Fragment>
-                      <Tab
-                        label="Requests"
-                        to={`/${userType}/pending-requests`}
-                        component={Link}
-                      />
-                      <Tab
-                        label="Requests"
-                        to={`/${userType}/pending-transactions`}
-                        component={Link}
-                      />
-                    </React.Fragment>
-                  )}
+                  {userType === "airline" && [
+                    <Tab
+                      label="Requests"
+                      to={`/${userType}/pending-requests`}
+                      component={Link}
+                    />,
+                    <Tab
+                      label="Transactions"
+                      to={`/${userType}/pending-transactions`}
+                      component={Link}
+                    />
+                  ]}
                 </Tabs>
               </React.Fragment>
             )}

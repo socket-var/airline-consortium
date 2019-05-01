@@ -5,6 +5,7 @@ const Flight = require("../models/Flight");
 const Passenger = require("../models/Passenger");
 const Ticket = require("../models/Ticket");
 const FlightChangeRequest = require("../models/FlightChangeRequest");
+const Transaction = require("../models/Transaction");
 
 // called when signup post request is made
 /**
@@ -210,7 +211,9 @@ async function approveAirlineRequest(a2ARequest) {
   try {
     const ticket = await Ticket.findOne({
       _id: a2ARequest.ticket._id
-    }).populate("destFlight");
+    });
+
+    console.debug(ticket);
 
     const passenger = await Passenger.findOne({
       _id: a2ARequest.ticket.passenger._id
@@ -248,14 +251,23 @@ async function approveAirlineRequest(a2ARequest) {
       await srcFlight.save();
       retDoc = await a2ARequest.save();
       await childRequest.save();
-      await newTicket.save();
+      const newTicketDoc = await newTicket.save();
+
+      const tx = new Transaction({
+        ticket: newTicketDoc._id,
+        payer: srcAirline._id,
+        payee: a2ARequest.destFlight.airline,
+        // TODO: remove amount hardcoded
+        amount: 10
+      });
+      await tx.save();
       await passenger.save();
       await ticket.save();
     }
   } catch (err) {
     console.error(err);
     retDoc = {};
-    ticket.status = "Booked. Flight change request rejected by chosen airline";
+    ticket.status = "Booked. Flight change request rejected";
     await ticket.save();
   } finally {
     return retDoc;
@@ -343,25 +355,33 @@ async function checkRequest(req, res, next) {
       requestDoc.ticket.passenger &&
       requestDoc.destFlight
     ) {
-      res.status(200).json({ message: "Valid request", request: requestDoc });
-    } else {
-      if (requestDoc.status === "init") {
-        requestDoc.status = "rejectedBySrcAirline";
-      } else if (requestDoc.status === "approvedBySrcAirline") {
-        requestDoc.status = "rejectedByDestAirline";
+      if (
+        requestDoc.requestType === "passenger" ||
+        (requestDoc.requestType === "airline" &&
+          requestDoc.srcAirline &&
+          requestDoc.srcAirline._id &&
+          requestDoc.destFlight.numSeatsRemaining > 0)
+      ) {
+        return res
+          .status(200)
+          .json({ message: "Valid request", request: requestDoc });
       }
-
-      // update ticket to booked but rejected
-      ticket.status =
-        "Booked. Flight change request rejected by chosen airline";
-      await ticket.save();
-
-      updatedRequestDoc = await requestDoc.save();
-
-      res
-        .status(200)
-        .json({ message: "Request rejected", request: updatedRequestDoc });
     }
+    if (requestDoc.status === "init") {
+      requestDoc.status = "rejectedBySrcAirline";
+    } else if (requestDoc.status === "approvedBySrcAirline") {
+      requestDoc.status = "rejectedByDestAirline";
+    }
+
+    // update ticket to booked but rejected
+    ticket.status = "Booked. Flight change request rejected by chosen airline";
+    await ticket.save();
+
+    updatedRequestDoc = await requestDoc.save();
+
+    res
+      .status(200)
+      .json({ message: "Request rejected", request: updatedRequestDoc });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error!!" });
@@ -369,43 +389,18 @@ async function checkRequest(req, res, next) {
 }
 
 async function getPendingTxs(req, res, next) {
-  const { requestId } = req.body;
+  const { airlineId } = req.body;
 
-  let requestDoc;
+  let txDocs;
   try {
-    requestDoc = await FlightChangeRequest.findOne({ _id: requestId }).populate(
-      [
-        { path: "ticket" },
-        { path: "destFlight", populate: { path: "airline" } },
-        { path: "srcAirline" }
-      ]
-    );
-    let updatedRequestDoc = {};
-    if (
-      requestDoc &&
-      requestDoc.ticket &&
-      requestDoc.ticket.passenger &&
-      requestDoc.destFlight
-    ) {
-      res.status(200).json({ message: "Valid request", request: requestDoc });
-    } else {
-      if (requestDoc.status === "init") {
-        requestDoc.status = "rejectedBySrcAirline";
-      } else if (requestDoc.status === "approvedBySrcAirline") {
-        requestDoc.status = "rejectedByDestAirline";
-      }
+    txDocs = await Transaction.find({
+      $or: [{ payer: airlineId }, { payee: airlineId }]
+    }).populate("ticket payer payee");
 
-      // update ticket to booked but rejected
-      ticket.status =
-        "Booked. Flight change request rejected by chosen airline";
-      await ticket.save();
-
-      updatedRequestDoc = await requestDoc.save();
-
-      res
-        .status(200)
-        .json({ message: "Request rejected", request: updatedRequestDoc });
-    }
+    res.status(200).json({
+      message: "Pending transactions retrieved",
+      transactions: txDocs
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error!!" });
@@ -417,6 +412,6 @@ airlineRouter.route("/list-flights").post(listFlights);
 airlineRouter.route("/get-pending-requests").post(getPendingRequests);
 airlineRouter.route("/check-request").post(checkRequest);
 airlineRouter.route("/approve-request").post(approveRequest);
-airlineRouter.route("/get-pending-txs").post(getPendingTxs);
+airlineRouter.route("/get-pending-txns").post(getPendingTxs);
 
 module.exports = airlineRouter;
