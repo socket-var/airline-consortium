@@ -2,13 +2,14 @@ import "./actionTypes";
 import {
   REGISTER_USER_SUCCESS,
   LOGIN_USER_SUCCESS,
-  REGISTER_USER_FAILED,
-  LOGIN_USER_FAILED,
-  LOGOUT_USER_SUCCESS
+  LOGOUT_USER_SUCCESS,
+  OPEN_SNACKBAR,
+  CLOSE_SNACKBAR
 } from "./actionTypes";
 import axios from "axios";
 import askContract from "../ethereum/contract";
 import web3Instance from "../ethereum/initMetamask";
+import ajaxErrorHandler from "../common/ajaxErrorHandler";
 
 /**
  *
@@ -69,16 +70,15 @@ export const registerUser = formFields => async dispatch => {
         payload: { user }
       });
     } catch (err) {
-      console.error(err);
-      // TODO: dispatch failed
-      dispatch({
-        type: REGISTER_USER_FAILED,
-        payload: {}
-      });
+      // TODO: use color based on type
+      ajaxErrorHandler(err, dispatch);
     }
   } else {
-    // TODO: notify error to user
     console.error("Passwords do not match");
+    dispatch({
+      type: OPEN_SNACKBAR,
+      payload: { message: "Passwords do not match", openSnackbar: true }
+    });
   }
 };
 /**
@@ -107,13 +107,14 @@ export const loginUser = formFields => async dispatch => {
       type: LOGIN_USER_SUCCESS,
       payload: { user }
     });
-  } catch (err) {
-    console.error(err);
-    // TODO: dispatch login_failed
+
     dispatch({
-      type: LOGIN_USER_FAILED,
-      payload: {}
+      type: OPEN_SNACKBAR,
+      payload: { message: result.data.message, openSnackbar: true }
     });
+  } catch (err) {
+    // TODO: use color based on type
+    ajaxErrorHandler(err, dispatch);
   }
 };
 
@@ -121,5 +122,19 @@ export const signoutUser = () => {
   return {
     type: LOGOUT_USER_SUCCESS,
     payload: {}
+  };
+};
+
+export const openAppSnackbar = message => {
+  return {
+    type: OPEN_SNACKBAR,
+    payload: { message, openSnackbar: true }
+  };
+};
+
+export const closeAppSnackbar = () => {
+  return {
+    type: CLOSE_SNACKBAR,
+    payload: { openSnackbar: false, message: "" }
   };
 };

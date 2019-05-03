@@ -6,6 +6,9 @@ import Button from "@material-ui/core/Button";
 import { connect } from "react-redux";
 import withStyles from "@material-ui/core/styles/withStyles";
 import axios from "axios";
+import ListView from "../../common/ListView";
+import { openAppSnackbar } from "../../redux/actions";
+import ajaxErrorHandler from "../../common/ajaxErrorHandler";
 
 const styles = theme => ({
   button: {
@@ -32,14 +35,22 @@ export class PassengerDashboard extends React.Component {
   };
 
   async componentDidMount() {
+    const { currentUser, currentTicket } = this.props;
+
     try {
       const results = await axios.post("/api/passenger/get-available-flights", {
-        userId: this.props.currentUser._id
+        userId: currentUser._id
       });
-      console.log(results.data);
+
+      let availableFlights = results.data.flights;
+      if (currentTicket) {
+        availableFlights = availableFlights.filter(
+          flight => flight._id !== currentTicket.flight._id
+        );
+      }
 
       this.setState({
-        availableFlights: results.data.flights
+        availableFlights
       });
     } catch (err) {
       console.error(err);
@@ -60,12 +71,15 @@ export class PassengerDashboard extends React.Component {
 
       console.debug(result.data);
 
+      this.props.openAppSnackbar(result.data.message);
+
       this.setState(prevState => {
         const state = Object.assign({}, prevState);
         state.purchases.push(result.data.ticket);
       });
     } catch (err) {
       console.error(err);
+      ajaxErrorHandler(err);
     }
   };
 
@@ -74,13 +88,16 @@ export class PassengerDashboard extends React.Component {
     const newFlightId = evt.currentTarget.dataset.key;
 
     try {
-      await axios.post("/api/passenger/request-flight-change", {
+      const result = await axios.post("/api/passenger/request-flight-change", {
         userId: currentUser._id,
-        ticketId: this.props.currentTicket,
+        ticketId: this.props.currentTicket._id,
         newFlightId
       });
+
+      this.props.openAppSnackbar(result.data.message);
     } catch (err) {
       console.error(err);
+      ajaxErrorHandler(err);
     }
   };
 
@@ -128,14 +145,22 @@ export class PassengerDashboard extends React.Component {
       ));
     }
 
-    return <div>{flightsList}</div>;
+    return (
+      <ListView
+        title="Available Flights:"
+        placeholder="No flights available right now!! Check back later."
+        items={flightsList}
+      />
+    );
   }
 }
 
 const mapStateToProps = state => ({
   currentUser: state.auth.user
 });
-const mapDispatchToProps = {};
+const mapDispatchToProps = {
+  openAppSnackbar
+};
 
 export default withStyles(styles)(
   connect(

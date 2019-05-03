@@ -7,6 +7,8 @@ import { connect } from "react-redux";
 import withStyles from "@material-ui/core/styles/withStyles";
 import axios from "axios";
 import { Link } from "react-router-dom";
+import ListView from "../../common/ListView";
+import ajaxErrorHandler from "../../common/ajaxErrorHandler";
 
 const styles = theme => ({
   button: {
@@ -43,10 +45,9 @@ export class PurchasesPage extends React.Component {
       });
     } catch (err) {
       console.error(err);
+      ajaxErrorHandler(err);
     }
   }
-
-  async selectFlightChange() {}
 
   render() {
     const { purchases } = this.state;
@@ -69,7 +70,7 @@ export class PurchasesPage extends React.Component {
             variant="contained"
             color="primary"
             className={classes.submit}
-            data-key={ticket._id}
+            data-key={JSON.stringify(ticket)}
             to="/passenger/flight-change"
             component={Link}
           >
@@ -79,7 +80,13 @@ export class PurchasesPage extends React.Component {
       ));
     }
 
-    return <div>{flightsList}</div>;
+    return (
+      <ListView
+        title="Your purchases:"
+        items={flightsList}
+        placeholder="Book a flight to see your purchases here."
+      />
+    );
   }
 }
 

@@ -6,6 +6,9 @@ import Typography from "@material-ui/core/Typography";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import axios from "axios";
+import ListView from "../../common/ListView";
+import { openAppSnackbar } from "../../redux/actions";
+import ajaxErrorHandler from "../../common/ajaxErrorHandler";
 
 const styles = theme => ({
   button: {
@@ -58,6 +61,7 @@ class AirlineDashboard extends React.Component {
       this.setState({ flights: result.data.flights });
     } catch (err) {
       console.error(err);
+      ajaxErrorHandler(err);
     }
   }
 
@@ -75,6 +79,8 @@ class AirlineDashboard extends React.Component {
 
       console.debug(result.data);
 
+      this.props.openAppSnackbar(result.data.message);
+
       this.setState(prevState => {
         const state = Object.assign({}, prevState);
         state.flights.push(result.data.flight);
@@ -83,6 +89,7 @@ class AirlineDashboard extends React.Component {
       });
     } catch (err) {
       console.error(err);
+      ajaxErrorHandler(err);
     }
   };
 
@@ -118,9 +125,11 @@ class AirlineDashboard extends React.Component {
           handleClose={this.handleClose}
         />
 
-        <div>
-          <ul>{flightsList}</ul>
-        </div>
+        <ListView
+          title="Flights:"
+          placeholder="Add new flights to see them here."
+          items={flightsList}
+        />
       </div>
     );
   }
@@ -130,7 +139,9 @@ const mapStateToProps = state => ({
   airlineId: state.auth.user._id
 });
 
-const mapDispatchToProps = {};
+const mapDispatchToProps = {
+  openAppSnackbar
+};
 
 export default withStyles(styles)(
   connect(

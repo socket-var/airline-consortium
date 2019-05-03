@@ -110,12 +110,14 @@ class AppNavBar extends React.Component {
                     label="Dashboard"
                     to={`/${userType}/dashboard`}
                     component={Link}
+                    key="0"
                   />
                   {userType === "passenger" && (
                     <Tab
                       label="Purchases"
                       to={`/${userType}/purchases`}
                       component={Link}
+                      key="1"
                     />
                   )}
                   {userType === "airline" && [
@@ -123,11 +125,13 @@ class AppNavBar extends React.Component {
                       label="Requests"
                       to={`/${userType}/pending-requests`}
                       component={Link}
+                      key="2"
                     />,
                     <Tab
                       label="Transactions"
                       to={`/${userType}/pending-transactions`}
                       component={Link}
+                      key="3"
                     />
                   ]}
                 </Tabs>

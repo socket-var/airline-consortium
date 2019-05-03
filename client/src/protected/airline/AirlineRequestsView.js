@@ -9,6 +9,9 @@ import { connect } from "react-redux";
 import axios from "axios";
 import askContract from "../../ethereum/contract";
 import web3Instance from "../../ethereum/initMetamask";
+import ListView from "../../common/ListView";
+import { openAppSnackbar } from "../../redux/actions";
+import ajaxErrorHandler from "../../common/ajaxErrorHandler";
 
 const styles = theme => ({
   button: {
@@ -50,6 +53,7 @@ class AirlineRequestsView extends React.Component {
  */
   handleRequest = async evt => {
     const { idx, key } = evt.currentTarget.dataset;
+    let approveResult;
     console.debug(idx, key, evt.currentTarget);
     try {
       // first send the request for checking
@@ -86,7 +90,7 @@ class AirlineRequestsView extends React.Component {
             from: srcAirlineAddress
           });
         console.debug(resultBC);
-        await axios.post("/api/airline/approve-request", {
+        approveResult = await axios.post("/api/airline/approve-request", {
           requestId: key
         });
       }
@@ -111,12 +115,9 @@ class AirlineRequestsView extends React.Component {
               });
           }
 
-          const approveResult = await axios.post(
-            "/api/airline/approve-request",
-            {
-              requestId: key
-            }
-          );
+          approveResult = await axios.post("/api/airline/approve-request", {
+            requestId: key
+          });
 
           console.debug(approveResult.data);
         }
@@ -136,6 +137,8 @@ class AirlineRequestsView extends React.Component {
       }
       console.debug(resultBC);
 
+      this.props.openAppSnackbar(approveResult.data.message);
+
       this.setState(prevState => {
         const newState = Object.assign({}, prevState);
         newState.requests.splice(idx, 1);
@@ -144,6 +147,7 @@ class AirlineRequestsView extends React.Component {
       });
     } catch (err) {
       console.error(err);
+      ajaxErrorHandler(err);
     }
   };
 
@@ -167,7 +171,7 @@ class AirlineRequestsView extends React.Component {
 
     let requestsList;
 
-    if (requests && requests.length > 0) {
+    if (requests.length > 0) {
       requestsList = requests.map((request, idx) => (
         <Paper key={idx} className={classes.listItem} elevation={1}>
           <Typography variant="h5" component="h3">
@@ -203,7 +207,13 @@ class AirlineRequestsView extends React.Component {
       ));
     }
 
-    return <div>{requestsList}</div>;
+    return (
+      <ListView
+        title="Pending Requests:"
+        placeholder="No pending requests!! Check back later."
+        items={requestsList}
+      />
+    );
   }
 }
 
@@ -211,7 +221,9 @@ const mapStateToProps = state => ({
   airlineId: state.auth.user._id
 });
 
-const mapDispatchToProps = {};
+const mapDispatchToProps = {
+  openAppSnackbar
+};
 
 export default withStyles(styles)(
   connect(

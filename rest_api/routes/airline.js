@@ -258,7 +258,8 @@ async function approveAirlineRequest(a2ARequest) {
         payer: srcAirline._id,
         payee: a2ARequest.destFlight.airline,
         // TODO: remove amount hardcoded
-        amount: 10
+        amount: 10,
+        status: "due"
       });
       await tx.save();
       await passenger.save();
@@ -394,12 +395,37 @@ async function getPendingTxs(req, res, next) {
   let txDocs;
   try {
     txDocs = await Transaction.find({
-      $or: [{ payer: airlineId }, { payee: airlineId }]
+      $or: [{ payer: airlineId }, { payee: airlineId }],
+      status: "due"
     }).populate("ticket payer payee");
 
     res.status(200).json({
       message: "Pending transactions retrieved",
       transactions: txDocs
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error!!" });
+  }
+}
+
+async function saveTx(req, res, next) {
+  const { txId } = req.body;
+
+  try {
+    const savedTx = await Transaction.findOneAndUpdate(
+      {
+        _id: txId
+      },
+      {
+        status: "paid"
+      }
+    );
+
+    await savedTx.save();
+
+    res.status(200).json({
+      message: "Transaction saved"
     });
   } catch (err) {
     console.error(err);
@@ -413,5 +439,6 @@ airlineRouter.route("/get-pending-requests").post(getPendingRequests);
 airlineRouter.route("/check-request").post(checkRequest);
 airlineRouter.route("/approve-request").post(approveRequest);
 airlineRouter.route("/get-pending-txns").post(getPendingTxs);
+airlineRouter.route("/save-tx").post(saveTx);
 
 module.exports = airlineRouter;

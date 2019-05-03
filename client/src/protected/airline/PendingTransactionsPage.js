@@ -9,6 +9,9 @@ import { Link } from "react-router-dom";
 import axios from "axios";
 import askContract from "../../ethereum/contract";
 import web3Instance from "../../ethereum/initMetamask";
+import ListView from "../../common/ListView";
+import { openAppSnackbar } from "../../redux/actions";
+import ajaxErrorHandler from "../../common/ajaxErrorHandler";
 
 const styles = theme => ({
   button: {
@@ -43,7 +46,12 @@ class PendingTransactionsPage extends React.Component {
           value: web3Instance.utils.toWei("10", "ether")
         });
       console.debug(paymentBC);
+      // TODO: Test this
+      await axios.post("/api/airline/save-tx", {
+        txId: key._id
+      });
 
+      this.props.openAppSnackbar("Transaction successful");
       this.setState(prevState => {
         const newState = Object.assign({}, prevState);
         newState.transactions.splice(idx, 1);
@@ -52,6 +60,7 @@ class PendingTransactionsPage extends React.Component {
       });
     } catch (err) {
       console.debug(err);
+      ajaxErrorHandler(err);
     }
   };
 
@@ -71,7 +80,7 @@ class PendingTransactionsPage extends React.Component {
 
   render() {
     const { transactions } = this.state;
-    const { classes } = this.props;
+    const { classes, airlineId } = this.props;
 
     let txList;
 
@@ -81,27 +90,29 @@ class PendingTransactionsPage extends React.Component {
           <Typography component="h3">From: {tx.payer._id}</Typography>
           <Typography component="p">To: {tx.payee._id}</Typography>
           <Typography component="p">Amount: {tx.amount} ether</Typography>
-          <Button
-            onClick={this.makePayment}
-            variant="contained"
-            color="primary"
-            className={classes.submit}
-            data-key={JSON.stringify(tx)}
-            data-idx={idx}
-            component={Link}
-          >
-            Make payment
-          </Button>
+          {airlineId === tx.payer._id && (
+            <Button
+              onClick={this.makePayment}
+              variant="contained"
+              color="primary"
+              className={classes.submit}
+              data-key={JSON.stringify(tx)}
+              data-idx={idx}
+              component={Link}
+            >
+              Make payment
+            </Button>
+          )}
         </Paper>
       ));
     }
 
     return (
-      <div>
-        <div>
-          <ul>{txList}</ul>
-        </div>
-      </div>
+      <ListView
+        title="Pending Transactions:"
+        placeholder="No pending transactions!! Check back later."
+        items={txList}
+      />
     );
   }
 }
@@ -110,7 +121,9 @@ const mapStateToProps = state => ({
   airlineId: state.auth.user._id
 });
 
-const mapDispatchToProps = {};
+const mapDispatchToProps = {
+  openAppSnackbar
+};
 
 export default withStyles(styles)(
   connect(

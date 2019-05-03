@@ -5,7 +5,8 @@ const transactionSchema = new mongoose.Schema({
   ticket: { type: ObjectId, required: true, ref: "Ticket" },
   payer: { type: ObjectId, required: true, ref: "Airline" },
   payee: { type: ObjectId, required: true, ref: "Airline" },
-  amount: { type: Number, required: true }
+  amount: { type: Number, required: true },
+  status: { type: String, required: true }
 });
 
 module.exports = mongoose.model("Transaction", transactionSchema);

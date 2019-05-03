@@ -16,7 +16,7 @@ export class PassengerLandingPage extends Component {
   setFlightChangeFlag = evt => {
     this.setState({
       isFlightChange: true,
-      currentTicket: evt.currentTarget.dataset.key
+      currentTicket: JSON.parse(evt.currentTarget.dataset.key)
     });
   };
 

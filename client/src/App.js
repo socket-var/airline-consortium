@@ -9,6 +9,7 @@ import AppNavBar from "./common/AppNavBar";
 import PassengerLandingPage from "./protected/passenger/PassengerLandingPage";
 import AdminLandingPage from "./protected/admin/AdminLandingPage";
 import AirlineLandingPage from "./protected/airline/AirlineLandingPage";
+import AppSnackbar from "./common/AppSnackbar";
 
 class App extends Component {
   state = {};
@@ -31,6 +32,7 @@ class App extends Component {
     return (
       <Router>
         <div className="App">
+          <AppSnackbar />
           <AppNavBar />
           <Route path="/" exact component={HomePage} />
           <Route path="/auth" component={Auth} />
