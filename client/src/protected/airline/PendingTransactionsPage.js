@@ -23,7 +23,9 @@ const styles = theme => ({
   listItem: {
     ...theme.mixins.gutters(),
     paddingTop: theme.spacing.unit * 2,
-    paddingBottom: theme.spacing.unit * 2
+    paddingBottom: theme.spacing.unit * 2,
+    width: "80%",
+    margin: "1.5em auto"
   }
 });
 
@@ -87,8 +89,8 @@ class PendingTransactionsPage extends React.Component {
     if (transactions.length > 0) {
       txList = transactions.map((tx, idx) => (
         <Paper key={idx} className={classes.listItem} elevation={1}>
-          <Typography component="h3">From: {tx.payer._id}</Typography>
-          <Typography component="p">To: {tx.payee._id}</Typography>
+          {tx.payer._id !== airlineId && <Typography component="h3">From: {tx.payer.name}</Typography>}
+          {tx.payee._id !== airlineId && <Typography component="p">To: {tx.payee.name}</Typography>}
           <Typography component="p">Amount: {tx.amount} ether</Typography>
           {airlineId === tx.payer._id && (
             <Button
@@ -98,7 +100,6 @@ class PendingTransactionsPage extends React.Component {
               className={classes.submit}
               data-key={JSON.stringify(tx)}
               data-idx={idx}
-              component={Link}
             >
               Make payment
             </Button>

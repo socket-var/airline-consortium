@@ -62,10 +62,13 @@ export class PurchasesPage extends React.Component {
             {ticket.flight.flightName}
           </Typography>
           <Typography component="p">
+            Ticket ID: #{ticket._id}
+          </Typography>
+          <Typography component="p">
             Airline Name: {ticket.flight.airline.name}
           </Typography>
           <Typography component="p">Status: {ticket.status}</Typography>
-          <Button
+          {(ticket.status === "Booked" || ticket.status === "Booked (flight changed)") && <Button
             onClick={setFlightChangeFlag}
             variant="contained"
             color="primary"
@@ -75,7 +78,7 @@ export class PurchasesPage extends React.Component {
             component={Link}
           >
             Request
-          </Button>
+          </Button>}
         </Paper>
       ));
     }

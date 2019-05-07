@@ -20,7 +20,9 @@ const styles = theme => ({
   listItem: {
     ...theme.mixins.gutters(),
     paddingTop: theme.spacing.unit * 2,
-    paddingBottom: theme.spacing.unit * 2
+    paddingBottom: theme.spacing.unit * 2,
+    width: "80%",
+    margin: "1.5em auto"
   }
 });
 

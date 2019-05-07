@@ -236,7 +236,7 @@ async function approveAirlineRequest(a2ARequest) {
       const newTicket = new Ticket({
         passenger: ticket.passenger,
         flight: a2ARequest.destFlight._id,
-        status: "Booked for flight change"
+        status: "Booked (flight changed)"
       });
 
       passenger.purchases.push(newTicket._id);
