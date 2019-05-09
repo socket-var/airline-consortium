@@ -161,6 +161,3 @@ db.createUser({
 
 ### Transactions page for airline that owes money:
 ![](./screens/transactions.PNG)
-
-### Transactions page for airline that is owed money:
-![](./screens/transactions_other.PNG)

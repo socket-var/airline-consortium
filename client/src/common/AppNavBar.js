@@ -145,7 +145,7 @@ class AppNavBar extends React.Component {
             {userType && (
               <React.Fragment>
                 <p className={classes.navP}>Welcome {userName}</p>
-                <p className={classes.navP}>Balance: {balance}</p>
+                {userType === "airline" && <p className={classes.navP}>Balance: {balance}</p>}
                 <Button
                   color="inherit"
                   className={classes.defaultChild}

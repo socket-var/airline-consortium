@@ -10,11 +10,11 @@ const initialState = {
   user: {},
   balance: "NA"
 };
-export default (state = initialState, action) => {
+export default (state = Object.assign({}, initialState), action) => {
   switch (action.type) {
     case REGISTER_USER_SUCCESS:
     case LOGIN_USER_SUCCESS:
-      return { user: action.payload.user, balance: action.payload.balance };
+      return { user: action.payload.user, balance: action.payload.balance || "NA" };
     case REGISTER_USER_FAILED:
     case LOGIN_USER_FAILED:
       // TODO: better error handling
