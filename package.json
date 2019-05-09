@@ -5,7 +5,9 @@
   "scripts": {
     "start": "npm run server",
     "server": "node ./bin/www",
-    "dev-start": "set NODE_ENV=development&set DEBUG=ask:server:*&concurrently --kill-others \"nodemon ./bin/www\" \"cd client && npm start\""
+    "dev-start": "set NODE_ENV=development&set DEBUG=ask:server:*&concurrently --kill-others \"nodemon ./bin/www\" \"cd client && npm start\"",
+    "dev-test-run": "set NODE_ENV=development&npm run server"
+
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
