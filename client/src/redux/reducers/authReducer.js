@@ -7,13 +7,14 @@ import {
 } from "../actionTypes";
 
 const initialState = {
-  user: {}
+  user: {},
+  balance: "NA"
 };
 export default (state = initialState, action) => {
   switch (action.type) {
     case REGISTER_USER_SUCCESS:
     case LOGIN_USER_SUCCESS:
-      return { user: action.payload.user };
+      return { user: action.payload.user, balance: action.payload.balance };
     case REGISTER_USER_FAILED:
     case LOGIN_USER_FAILED:
       // TODO: better error handling

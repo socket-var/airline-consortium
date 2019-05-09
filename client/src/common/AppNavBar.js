@@ -31,6 +31,10 @@ const styles = theme => ({
   },
   defaultChild: {
     flexGrow: 0
+  },
+  navP: {
+    padding: "0.5em",
+    marginRight: "0.5em"
   }
 });
 
@@ -61,7 +65,7 @@ class AppNavBar extends React.Component {
   };
 
   render() {
-    const { classes, userType, userName } = this.props;
+    const { classes, userType, userName, balance } = this.props;
     const { value, openRight } = this.state;
 
     return (
@@ -140,7 +144,8 @@ class AppNavBar extends React.Component {
 
             {userType && (
               <React.Fragment>
-                <p>Welcome {userName}</p>
+                <p className={classes.navP}>Welcome {userName}</p>
+                <p className={classes.navP}>Balance: {balance}</p>
                 <Button
                   color="inherit"
                   className={classes.defaultChild}
@@ -159,7 +164,8 @@ class AppNavBar extends React.Component {
 
 const mapStateToProps = state => ({
   userType: state.auth.user.userType,
-  userName: state.auth.user.name
+  userName: state.auth.user.name,
+  balance: state.auth.balance
 });
 
 const mapDispatchToProps = {

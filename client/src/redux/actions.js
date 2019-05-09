@@ -98,6 +98,12 @@ export const loginUser = formFields => async dispatch => {
     });
     console.log(result.data);
 
+    const balance = await askContract.methods.balanceOf(window.web3.eth.accounts[0]).call({
+      from: window.web3.eth.accounts[0]
+    });
+
+    console.debug(balance);
+
     const user = Object.assign(
       { userType: result.data.userType },
       result.data.user
@@ -105,7 +111,7 @@ export const loginUser = formFields => async dispatch => {
 
     dispatch({
       type: LOGIN_USER_SUCCESS,
-      payload: { user }
+      payload: { user, balance: web3Instance.utils.fromWei(balance, "ether") }
     });
 
     dispatch({
