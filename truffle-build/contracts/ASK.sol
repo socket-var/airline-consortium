@@ -14,9 +14,9 @@ contract ASK {
     address payable private chairperson;
     address payable contractAccount;
     
-    // define a list of all users 
+    // define a list of all users
     mapping(address => Airline) private airlines;
-    uint min_deposit;
+    uint min_deposit = 50 ether;
      
     // modifiers
     modifier onlyChairperson() {
@@ -35,8 +35,8 @@ contract ASK {
         _;
     }
     
-    modifier onlyNewAirline(address newAirline) {
-        require(airlines[newAirline].isRegistered == false, "Already a registered airline");
+    modifier onlyNewAirline() {
+        require(airlines[msg.sender].isRegistered == false, "Already a registered airline");
         _;
     }
     
@@ -44,14 +44,29 @@ contract ASK {
         require(airlines[newAirline].isRegistered == true, "Not a registered airline");
         _;
     }
+
+    modifier ensureNotSelf(address airline) {
+        require(airline != msg.sender, "Both airlines must not be the same");
+        _;
+    }
     
+    modifier onlyValidDeposit() {
+        require(msg.value >= min_deposit, "Your deposit must be greater than or equal to the minimum deposit");
+        _;
+    }
     
-    constructor() public payable {
+    //events
+
+    event RequestSent(bytes32 requestHash);
+
+    event ResponseSent(bytes32 requestHash, bool isDone);
+    
+    constructor() payable public onlyValidDeposit {
         contractAccount = address(this);
-        min_deposit = 50 ether;
         chairperson = msg.sender;
         airlines[chairperson].isAdmin = true;
         airlines[chairperson].isRegistered = true;
+        contractAccount.transfer(msg.value);
     }
     
     /* Chairperson functions go here */
@@ -62,8 +77,8 @@ contract ASK {
     }
    
     // called by the chairperson when a new user needs to be registered. A new user structure is added to the list of users and a deposit more like a "signup bonus" is added to user's account.
-    function register() public payable onlyNewAirline(msg.sender) {
-        require(msg.value >= min_deposit, "Your deposit must be greater than or equal to the minimum deposit");
+    function register() public payable onlyNewAirline onlyValidDeposit {
+        
         address payable newAirline = msg.sender;
         airlines[newAirline].isAdmin = false;
         airlines[newAirline].isRegistered = true;
@@ -72,26 +87,28 @@ contract ASK {
         contractAccount.transfer(msg.value);
     }
     
-    // called when a user is to be unregistered, first the user's balance is transferred to the user and user's registration details are deleted 
-    function unregister(address payable userAddress) public payable onlyChairperson onlyRegistered(userAddress){
+    // called when a user is to be unregistered, first the user's balance is transferred to the user and user's registration details are deleted
+    function unregister(address payable userAddress) public payable onlyChairpersonOrSelf(userAddress) {
         // if chairperson tries to unregister himself
-        require(userAddress != msg.sender, "Cannot unregister yourself");
+        require(chairperson != msg.sender, "Chairpersons cannot unregister themselves");
         
         userAddress.transfer(airlines[userAddress].balance);
         delete airlines[userAddress];
      
     }
     
-    function settlePayment(address payable toAirline) public payable onlyAirline {
+    function settlePayment(address payable toAirline) public payable onlyAirline ensureNotSelf(toAirline) {
         toAirline.transfer(msg.value);
     }
     
-    function request(address toAirline, uint256 orderHash) public onlyAirline returns(bool) {
-        return true;
+    function request(address toAirline, bytes32 requestHash) public onlyAirline ensureNotSelf(toAirline) {
+        
+        emit RequestSent(requestHash);
     }
     
-    function response(address fromAirline, uint256 orderHash) public onlyAirline returns(bool) {
-        return true;
+    function response(address payable toAirline, bytes32 requestHash, bool isDone) public onlyAirline ensureNotSelf(toAirline) {
+
+        emit ResponseSent(requestHash, isDone);
     }
     
     function() payable external {
